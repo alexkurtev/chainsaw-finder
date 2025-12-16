@@ -3,46 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <title>Търсене на верига за резачка</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
   font-family: Arial, sans-serif;
   max-width: 700px;
-  margin: 20px auto;
-  padding: 0 15px;
-  background: #f9f9f9;
+  margin: 30px auto;
 }
-h2, h3 { text-align: center; color: #333; }
 select, input {
   width: 100%;
-  padding: 14px;
+  padding: 10px;
   margin-top: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  transition: 0.2s;
 }
-select:focus, input:focus {
-  border-color: #007BFF;
-  box-shadow: 0 0 5px rgba(0,123,255,0.3);
-  outline: none;
+.section {
+  margin-bottom: 30px;
 }
-.section { margin-bottom: 30px; }
-.result { margin-top: 15px; }
-.card {
-  background: #fff;
-  border-radius: 10px;
+.result {
+  background: #f3f3f3;
   padding: 15px;
-  margin-bottom: 12px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  margin-top: 15px;
 }
-.card strong { color: #007BFF; }
-hr { border: none; border-top: 1px solid #ccc; margin: 30px 0; }
-@media screen and (max-width: 480px) {
-  body { margin: 10px; }
-  select, input { font-size: 18px; padding: 16px; }
-  .card { padding: 18px; font-size: 16px; }
+li {
+  margin-bottom: 8px;
 }
 </style>
 </head>
@@ -73,23 +54,23 @@ hr { border: none; border-top: 1px solid #ccc; margin: 30px 0; }
 </div>
 
 <script>
-// CSV from Google Sheet
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2pacx-1vq10nkdvscxoamjps57hzc-ekajz3-7vsifyitnsxrvvtyrqtyfeorg8f2ekkeion9izmd_9rf4hi1t/pub?output=csv";
+// PASTE your CSV Publish URL here
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ10nkDvscxOamJps57hzc-EkAjz3-7vsifyiTNsXRVvTyrqTYfEorg8f2EkkEIon9IzmD_9rf4Hi1t/pub?output=csv";
 
 let data = [];
 
 fetch(CSV_URL)
   .then(res => res.text())
   .then(text => {
-    const rows = text.trim().split("\n").slice(1); // skip header row
+    const rows = text.trim().split("\n").slice(1); // skip headers
     data = rows.map(r => {
       const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
       return {
-        code: c[0].trim(),
-        brand: c[1].trim(),
-        model: c[2].trim(),
-        chain: c[3].replace(/"/g, "").trim(),
-        type: c[4].trim()
+        code: c[0].trim(),   // Код
+        brand: c[1].trim(),  // Марка
+        model: c[2].trim(),  // Модел
+        chain: c[3].replace(/"/g, "").trim(), // Верига
+        type: c[4].trim()    // Вид
       };
     });
     populateTypes();
@@ -106,12 +87,11 @@ const codeResult = document.getElementById("codeResult");
 /* ---------- TYPE → BRAND → MODEL ---------- */
 
 function populateTypes() {
-  // Only unique type strings
   const types = [...new Set(data.map(d => d.type))];
   types.forEach(t => {
     const o = document.createElement("option");
-    o.value = t;       // IMPORTANT: use string value
-    o.textContent = t; // Display text
+    o.value = t;
+    o.textContent = t;
     typeSelect.appendChild(o);
   });
 }
@@ -122,26 +102,20 @@ typeSelect.addEventListener("change", () => {
   brandSelect.disabled = false;
   modelSelect.disabled = true;
   stepResult.innerHTML = "";
-  const brands = [...new Set(data.filter(d => d.type === typeSelect.value).map(d => d.brand))];
-  brands.forEach(b => {
-    const o = document.createElement("option");
-    o.value = b;
-    o.textContent = b;
-    brandSelect.appendChild(o);
-  });
+
+  const brands = data.filter(d => d.type === typeSelect.value).map(d => d.brand);
+  addOptions(brandSelect, brands);
 });
 
 brandSelect.addEventListener("change", () => {
   modelSelect.innerHTML = '<option value="">Изберете модел</option>';
   modelSelect.disabled = false;
   stepResult.innerHTML = "";
-  const models = [...new Set(data.filter(d => d.type === typeSelect.value && d.brand === brandSelect.value).map(d => d.model))];
-  models.forEach(m => {
-    const o = document.createElement("option");
-    o.value = m;
-    o.textContent = m;
-    modelSelect.appendChild(o);
-  });
+
+  const models = data
+    .filter(d => d.type === typeSelect.value && d.brand === brandSelect.value)
+    .map(d => d.model);
+  addOptions(modelSelect, models);
 });
 
 modelSelect.addEventListener("change", () => {
@@ -150,12 +124,12 @@ modelSelect.addEventListener("change", () => {
     d.brand === brandSelect.value &&
     d.model === modelSelect.value
   );
-  stepResult.innerHTML = matches.map(m => `
-    <div class="card">
-      <strong>Код:</strong> ${m.code}<br>
-      <strong>Верига:</strong> ${m.chain}
-    </div>
-  `).join("");
+  stepResult.innerHTML = `
+    <strong>Подходяща верига:</strong>
+    <ul>
+      ${matches.map(m => `<li><strong>Код:</strong> ${m.code}<br><strong>Верига:</strong> ${m.chain}</li>`).join("")}
+    </ul>
+  `;
 });
 
 /* ---------- SEARCH BY CODE ---------- */
@@ -163,20 +137,31 @@ modelSelect.addEventListener("change", () => {
 codeInput.addEventListener("input", () => {
   const code = codeInput.value.trim();
   if (code.length !== 6) { codeResult.innerHTML = ""; return; }
+
   const match = data.find(d => d.code === code);
   if (!match) {
-    codeResult.innerHTML = '<div class="card">Няма намерен резултат.</div>';
+    codeResult.innerHTML = "Няма намерен резултат.";
     return;
   }
+
   codeResult.innerHTML = `
-    <div class="card">
-      <strong>Марка:</strong> ${match.brand}<br>
-      <strong>Модел:</strong> ${match.model}<br>
-      <strong>Вид:</strong> ${match.type}<br>
-      <strong>Верига:</strong> ${match.chain}
-    </div>
+    <strong>Резултат:</strong><br>
+    <strong>Марка:</strong> ${match.brand}<br>
+    <strong>Модел:</strong> ${match.model}<br>
+    <strong>Вид:</strong> ${match.type}<br>
+    <strong>Верига:</strong> ${match.chain}
   `;
 });
+
+/* ---------- Helper ---------- */
+function addOptions(select, values) {
+  [...new Set(values)].forEach(v => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
+    select.appendChild(o);
+  });
+}
 </script>
 
 </body>
