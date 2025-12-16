@@ -73,6 +73,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 30px 0; }
 </div>
 
 <script>
+// CSV from Google Sheet
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2pacx-1vq10nkdvscxoamjps57hzc-ekajz3-7vsifyitnsxrvvtyrqtyfeorg8f2ekkeion9izmd_9rf4hi1t/pub?output=csv";
 
 let data = [];
@@ -80,22 +81,21 @@ let data = [];
 fetch(CSV_URL)
   .then(res => res.text())
   .then(text => {
-    const rows = text.trim().split("\n");
-    // Skip the first row because it's the header
-    data = rows.slice(1).map(r => {
+    const rows = text.trim().split("\n").slice(1); // skip header row
+    data = rows.map(r => {
       const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
       return {
-        code: c[0].trim(),   // Код
-        brand: c[1].trim(),  // Марка
-        model: c[2].trim(),  // Модел
-        chain: c[3].replace(/"/g, "").trim(), // Верига
-        type: c[4].trim()    // Вид
+        code: c[0].trim(),
+        brand: c[1].trim(),
+        model: c[2].trim(),
+        chain: c[3].replace(/"/g, "").trim(),
+        type: c[4].trim()
       };
     });
     populateTypes();
   });
 
-// DOM
+// DOM elements
 const typeSelect = document.getElementById("typeSelect");
 const brandSelect = document.getElementById("brandSelect");
 const modelSelect = document.getElementById("modelSelect");
@@ -103,12 +103,15 @@ const stepResult = document.getElementById("stepResult");
 const codeInput = document.getElementById("codeInput");
 const codeResult = document.getElementById("codeResult");
 
+/* ---------- TYPE → BRAND → MODEL ---------- */
+
 function populateTypes() {
+  // Only unique type strings
   const types = [...new Set(data.map(d => d.type))];
   types.forEach(t => {
     const o = document.createElement("option");
-    o.value = t;
-    o.textContent = t;
+    o.value = t;       // IMPORTANT: use string value
+    o.textContent = t; // Display text
     typeSelect.appendChild(o);
   });
 }
@@ -119,16 +122,26 @@ typeSelect.addEventListener("change", () => {
   brandSelect.disabled = false;
   modelSelect.disabled = true;
   stepResult.innerHTML = "";
-  const brands = data.filter(d => d.type === typeSelect.value).map(d => d.brand);
-  addOptions(brandSelect, brands);
+  const brands = [...new Set(data.filter(d => d.type === typeSelect.value).map(d => d.brand))];
+  brands.forEach(b => {
+    const o = document.createElement("option");
+    o.value = b;
+    o.textContent = b;
+    brandSelect.appendChild(o);
+  });
 });
 
 brandSelect.addEventListener("change", () => {
   modelSelect.innerHTML = '<option value="">Изберете модел</option>';
   modelSelect.disabled = false;
   stepResult.innerHTML = "";
-  const models = data.filter(d => d.type === typeSelect.value && d.brand === brandSelect.value).map(d => d.model);
-  addOptions(modelSelect, models);
+  const models = [...new Set(data.filter(d => d.type === typeSelect.value && d.brand === brandSelect.value).map(d => d.model))];
+  models.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m;
+    o.textContent = m;
+    modelSelect.appendChild(o);
+  });
 });
 
 modelSelect.addEventListener("change", () => {
@@ -144,6 +157,8 @@ modelSelect.addEventListener("change", () => {
     </div>
   `).join("");
 });
+
+/* ---------- SEARCH BY CODE ---------- */
 
 codeInput.addEventListener("input", () => {
   const code = codeInput.value.trim();
@@ -162,15 +177,6 @@ codeInput.addEventListener("input", () => {
     </div>
   `;
 });
-
-function addOptions(select, values) {
-  [...new Set(values)].forEach(v => {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    select.appendChild(o);
-  });
-}
 </script>
 
 </body>
