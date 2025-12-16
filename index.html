@@ -12,10 +12,7 @@ body {
   padding: 0 15px;
   background: #f9f9f9;
 }
-h2, h3 {
-  text-align: center;
-  color: #333;
-}
+h2, h3 { text-align: center; color: #333; }
 select, input {
   width: 100%;
   padding: 14px;
@@ -31,12 +28,8 @@ select:focus, input:focus {
   box-shadow: 0 0 5px rgba(0,123,255,0.3);
   outline: none;
 }
-.section {
-  margin-bottom: 30px;
-}
-.result {
-  margin-top: 15px;
-}
+.section { margin-bottom: 30px; }
+.result { margin-top: 15px; }
 .card {
   background: #fff;
   border-radius: 10px;
@@ -44,16 +37,8 @@ select:focus, input:focus {
   margin-bottom: 12px;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
-.card strong {
-  color: #007BFF;
-}
-hr {
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 30px 0;
-}
-
-/* Mobile adjustments */
+.card strong { color: #007BFF; }
+hr { border: none; border-top: 1px solid #ccc; margin: 30px 0; }
 @media screen and (max-width: 480px) {
   body { margin: 10px; }
   select, input { font-size: 18px; padding: 16px; }
@@ -65,7 +50,6 @@ hr {
 
 <h2>Търсене на верига за резачка</h2>
 
-<!-- SEARCH BY CODE -->
 <div class="section">
   <h3>Търсене по 6-цифрен код</h3>
   <input id="codeInput" type="text" placeholder="Въведете код (напр. 123456)">
@@ -74,7 +58,6 @@ hr {
 
 <hr>
 
-<!-- STEP-BY-STEP SEARCH -->
 <div class="section">
   <h3>Търсене по тип резачка</h3>
   <select id="typeSelect">
@@ -90,7 +73,6 @@ hr {
 </div>
 
 <script>
-// Your CSV published URL
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2pacx-1vq10nkdvscxoamjps57hzc-ekajz3-7vsifyitnsxrvvtyrqtyfeorg8f2ekkeion9izmd_9rf4hi1t/pub?output=csv";
 
 let data = [];
@@ -98,29 +80,28 @@ let data = [];
 fetch(CSV_URL)
   .then(res => res.text())
   .then(text => {
-    const rows = text.trim().split("\n").slice(1);
-    data = rows.map(r => {
+    const rows = text.trim().split("\n");
+    // Skip the first row because it's the header
+    data = rows.slice(1).map(r => {
       const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
       return {
-        code: c[0].trim(),
-        brand: c[1].trim(),
-        model: c[2].trim(),
-        chain: c[3].replace(/"/g, "").trim(),
-        type: c[4].trim()
+        code: c[0].trim(),   // Код
+        brand: c[1].trim(),  // Марка
+        model: c[2].trim(),  // Модел
+        chain: c[3].replace(/"/g, "").trim(), // Верига
+        type: c[4].trim()    // Вид
       };
     });
     populateTypes();
   });
 
-// DOM elements
+// DOM
 const typeSelect = document.getElementById("typeSelect");
 const brandSelect = document.getElementById("brandSelect");
 const modelSelect = document.getElementById("modelSelect");
 const stepResult = document.getElementById("stepResult");
 const codeInput = document.getElementById("codeInput");
 const codeResult = document.getElementById("codeResult");
-
-/* ---------- TYPE → BRAND → MODEL ---------- */
 
 function populateTypes() {
   const types = [...new Set(data.map(d => d.type))];
@@ -138,7 +119,6 @@ typeSelect.addEventListener("change", () => {
   brandSelect.disabled = false;
   modelSelect.disabled = true;
   stepResult.innerHTML = "";
-
   const brands = data.filter(d => d.type === typeSelect.value).map(d => d.brand);
   addOptions(brandSelect, brands);
 });
@@ -147,10 +127,7 @@ brandSelect.addEventListener("change", () => {
   modelSelect.innerHTML = '<option value="">Изберете модел</option>';
   modelSelect.disabled = false;
   stepResult.innerHTML = "";
-
-  const models = data
-    .filter(d => d.type === typeSelect.value && d.brand === brandSelect.value)
-    .map(d => d.model);
+  const models = data.filter(d => d.type === typeSelect.value && d.brand === brandSelect.value).map(d => d.model);
   addOptions(modelSelect, models);
 });
 
@@ -168,18 +145,14 @@ modelSelect.addEventListener("change", () => {
   `).join("");
 });
 
-/* ---------- SEARCH BY CODE ---------- */
-
 codeInput.addEventListener("input", () => {
   const code = codeInput.value.trim();
   if (code.length !== 6) { codeResult.innerHTML = ""; return; }
-
   const match = data.find(d => d.code === code);
   if (!match) {
     codeResult.innerHTML = '<div class="card">Няма намерен резултат.</div>';
     return;
   }
-
   codeResult.innerHTML = `
     <div class="card">
       <strong>Марка:</strong> ${match.brand}<br>
@@ -190,7 +163,6 @@ codeInput.addEventListener("input", () => {
   `;
 });
 
-/* ---------- Helper ---------- */
 function addOptions(select, values) {
   [...new Set(values)].forEach(v => {
     const o = document.createElement("option");
