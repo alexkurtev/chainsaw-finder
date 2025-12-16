@@ -31,7 +31,6 @@ li {
 
 <h2>Търсене на верига за резачка</h2>
 
-<!-- SEARCH BY CODE -->
 <div class="section">
   <h3>Търсене по 6-цифрен код</h3>
   <input id="codeInput" type="text" placeholder="Въведете код (напр. 123456)">
@@ -40,79 +39,71 @@ li {
 
 <hr>
 
-<!-- STEP BY STEP SEARCH -->
 <div class="section">
   <h3>Търсене по тип резачка</h3>
-
-  <select id="powerSelect">
+  <select id="typeSelect">
     <option value="">Изберете вид</option>
   </select>
-
   <select id="brandSelect" disabled>
     <option value="">Изберете марка</option>
   </select>
-
   <select id="modelSelect" disabled>
     <option value="">Изберете модел</option>
   </select>
-
   <div class="result" id="stepResult"></div>
 </div>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2pacx-1vq10nkdvscxoamjps57hzc-ekajz3-7vsifyitnsxrvvtyrqtyfeorg8f2ekkeion9izmd_9rf4hi1t/pub?output=csv";
+// PASTE your CSV Publish URL here
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ10nkDvscxOamJps57hzc-EkAjz3-7vsifyiTNsXRVvTyrqTYfEorg8f2EkkEIon9IzmD_9rf4Hi1t/pub?output=csv";
 
 let data = [];
 
 fetch(CSV_URL)
   .then(res => res.text())
   .then(text => {
-    const rows = text.trim().split("\n").slice(1);
-
+    const rows = text.trim().split("\n").slice(1); // skip headers
     data = rows.map(r => {
       const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
       return {
-        code: c[0].trim(),       // код
-        brand: c[1].trim(),      // марка
-        model: c[2].trim(),      // модел
-        chain: c[3].replace(/"/g, "").trim(),  // верига
-        power: c[4].trim()       // вид
+        code: c[0].trim(),   // Код
+        brand: c[1].trim(),  // Марка
+        model: c[2].trim(),  // Модел
+        chain: c[3].replace(/"/g, "").trim(), // Верига
+        type: c[4].trim()    // Вид
       };
     });
-
-    populatePowerTypes();
+    populateTypes();
   });
 
-const powerSelect = document.getElementById("powerSelect");
+// DOM elements
+const typeSelect = document.getElementById("typeSelect");
 const brandSelect = document.getElementById("brandSelect");
 const modelSelect = document.getElementById("modelSelect");
 const stepResult = document.getElementById("stepResult");
 const codeInput = document.getElementById("codeInput");
 const codeResult = document.getElementById("codeResult");
 
-/* ВИД → МАРКА → МОДЕЛ */
+/* ---------- TYPE → BRAND → MODEL ---------- */
 
-function populatePowerTypes() {
-  const powers = [...new Set(data.map(d => d.power))];
-  powers.forEach(p => {
+function populateTypes() {
+  const types = [...new Set(data.map(d => d.type))];
+  types.forEach(t => {
     const o = document.createElement("option");
-    o.value = p;
-    o.textContent = p;
-    powerSelect.appendChild(o);
+    o.value = t;
+    o.textContent = t;
+    typeSelect.appendChild(o);
   });
 }
 
-powerSelect.addEventListener("change", () => {
+typeSelect.addEventListener("change", () => {
   brandSelect.innerHTML = '<option value="">Изберете марка</option>';
   modelSelect.innerHTML = '<option value="">Изберете модел</option>';
   brandSelect.disabled = false;
   modelSelect.disabled = true;
   stepResult.innerHTML = "";
 
-  const brands = data
-    .filter(d => d.power === powerSelect.value)
-    .map(d => d.brand);
-
+  const brands = data.filter(d => d.type === typeSelect.value).map(d => d.brand);
   addOptions(brandSelect, brands);
 });
 
@@ -122,43 +113,30 @@ brandSelect.addEventListener("change", () => {
   stepResult.innerHTML = "";
 
   const models = data
-    .filter(d =>
-      d.power === powerSelect.value &&
-      d.brand === brandSelect.value
-    )
+    .filter(d => d.type === typeSelect.value && d.brand === brandSelect.value)
     .map(d => d.model);
-
   addOptions(modelSelect, models);
 });
 
 modelSelect.addEventListener("change", () => {
   const matches = data.filter(d =>
-    d.power === powerSelect.value &&
+    d.type === typeSelect.value &&
     d.brand === brandSelect.value &&
     d.model === modelSelect.value
   );
-
   stepResult.innerHTML = `
     <strong>Подходяща верига:</strong>
     <ul>
-      ${matches.map(m => `
-        <li>
-          <strong>Код:</strong> ${m.code}<br>
-          <strong>Верига:</strong> ${m.chain}
-        </li>
-      `).join("")}
+      ${matches.map(m => `<li><strong>Код:</strong> ${m.code}<br><strong>Верига:</strong> ${m.chain}</li>`).join("")}
     </ul>
   `;
 });
 
-/* ТЪРСЕНЕ ПО КОД */
+/* ---------- SEARCH BY CODE ---------- */
 
 codeInput.addEventListener("input", () => {
   const code = codeInput.value.trim();
-  if (code.length !== 6) {
-    codeResult.innerHTML = "";
-    return;
-  }
+  if (code.length !== 6) { codeResult.innerHTML = ""; return; }
 
   const match = data.find(d => d.code === code);
   if (!match) {
@@ -170,11 +148,12 @@ codeInput.addEventListener("input", () => {
     <strong>Резултат:</strong><br>
     <strong>Марка:</strong> ${match.brand}<br>
     <strong>Модел:</strong> ${match.model}<br>
-    <strong>Вид:</strong> ${match.power}<br>
+    <strong>Вид:</strong> ${match.type}<br>
     <strong>Верига:</strong> ${match.chain}
   `;
 });
 
+/* ---------- Helper ---------- */
 function addOptions(select, values) {
   [...new Set(values)].forEach(v => {
     const o = document.createElement("option");
