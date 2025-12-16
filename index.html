@@ -163,7 +163,7 @@ modelSelect.addEventListener("change", () => {
   );
   stepResult.innerHTML = matches.map(m => `
     <div class="card">
-      <strong>Код:</strong> ${m.code}<br>
+
       <strong>Верига:</strong> ${m.chain}
     </div>
   `).join("");
@@ -203,5 +203,6 @@ function addOptions(select, values) {
 </footer>
 </body>
 </html>
+
 
 
