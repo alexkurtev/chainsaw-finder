@@ -3,99 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Търсене на верига за резачка</title>
-<meta name="description" content="Намерете подходящата верига за вашата резачка по код или по вид, марка и модел.">
-<meta name="theme-color" content="#1f6feb">
+<title>Каква верига? | Търсене на верига за резачка</title>
+<meta name="description" content="Намерете подходящата верига за вашата резачка по вид, марка и модел или по код.">
+<meta name="theme-color" content="#e2580b">
 <!-- Open the connection to Google early, before the script runs -->
 <link rel="preconnect" href="https://docs.google.com" crossorigin>
 <style>
 :root {
-  --bg: #f4f6f8; --surface: #fff; --text: #1d2329; --muted: #5b6670;
-  --border: #d5dbe1; --accent: #1f6feb; --accent-soft: rgba(31,111,235,.15);
-  --warn-bg: #fff4e5; --warn: #9a4b00; --radius: 12px;
+  --bg: #f3f4f2; --surface: #fff; --text: #1b1f1d; --muted: #646b68;
+  --border: #e0e3df; --chip: #f1f2ef; --accent: #e2580b; --accent-ink: #fff;
+  --accent-soft: rgba(226,88,11,.16); --warn: #9a4b00; --shadow: rgba(20,25,22,.08);
+  --radius: 14px;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1418; --surface: #182027; --text: #e6edf3; --muted: #9aa7b2;
-    --border: #2c3640; --accent: #58a6ff; --accent-soft: rgba(88,166,255,.2);
-    --warn-bg: #2b2111; --warn: #f0b45a;
+  :root:not([data-theme="light"]) {
+    --bg: #121413; --surface: #1b1e1c; --text: #e9ece9; --muted: #9aa29d;
+    --border: #2b302d; --chip: #252a27; --accent: #ff8a3d; --accent-ink: #1a0d03;
+    --accent-soft: rgba(255,138,61,.2); --warn: #f0b45a; --shadow: rgba(0,0,0,.4);
+    color-scheme: dark;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #121413; --surface: #1b1e1c; --text: #e9ece9; --muted: #9aa29d;
+  --border: #2b302d; --chip: #252a27; --accent: #ff8a3d; --accent-ink: #1a0d03;
+  --accent-soft: rgba(255,138,61,.2); --warn: #f0b45a; --shadow: rgba(0,0,0,.4);
+  color-scheme: dark;
+}
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
-main { max-width: 680px; margin: 0 auto; padding: 24px 16px; }
-h1 { font-size: 1.6rem; text-align: center; margin: 8px 0 24px; }
-h2 { font-size: 1.1rem; margin: 0 0 12px; }
+main { max-width: 640px; margin: 0 auto; padding: 20px 16px 8px; display: grid; gap: 12px; }
+
+/* Header */
+.top { display: flex; align-items: center; gap: 12px; }
+.logo {
+  flex: none; width: 40px; height: 40px; border-radius: 11px;
+  background: var(--accent); color: var(--accent-ink); display: grid; place-items: center;
+}
+h1 { margin: 0; font-size: 1.35rem; line-height: 1.2; letter-spacing: -.01em; }
+.top p { margin: 0; color: var(--muted); font-size: .875rem; }
+
+/* Segmented tabs */
+.tabs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px;
+  background: var(--chip); border-radius: 12px;
+}
+.tabs button {
+  font: inherit; font-weight: 600; color: var(--muted); background: transparent;
+  border: 0; border-radius: 9px; padding: 9px 12px; cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px var(--shadow); }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Panel and fields */
 .panel {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; display: grid; gap: 12px; box-shadow: 0 1px 2px var(--shadow);
 }
-label { display: block; font-size: .875rem; color: var(--muted); margin: 12px 0 4px; }
-label:first-of-type { margin-top: 0; }
+.fields { display: grid; gap: 8px; }
+@media (min-width: 600px) { .fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 input, select {
-  width: 100%; min-height: 48px; padding: 12px 14px; font: inherit; font-size: 1rem;
-  color: var(--text); background: var(--surface);
+  width: 100%; min-height: 44px; padding: 10px 12px; font: inherit; font-size: 1rem;
+  color: var(--text); background-color: var(--bg);
   border: 1px solid var(--border); border-radius: 10px;
   transition: border-color .15s, box-shadow .15s;
 }
 select {
-  appearance: none; padding-right: 40px; cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23889' stroke-width='2'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 14px center;
+  appearance: none; padding-right: 34px; cursor: pointer; text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
 }
-select:disabled { opacity: .5; cursor: not-allowed; }
+select:disabled { opacity: .45; cursor: not-allowed; }
 input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+input { letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+input::placeholder { letter-spacing: normal; color: var(--muted); }
+.hint { margin: -4px 0 0; color: var(--muted); font-size: .8rem; }
+
+/* Results */
 .result:empty { display: none; }
-.result { margin-top: 14px; display: grid; gap: 10px; }
+.result { display: grid; gap: 8px; }
 .card {
-  background: var(--bg); border-left: 4px solid var(--accent);
-  border-radius: 8px; padding: 12px 16px; animation: in .2s ease-out;
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+  display: grid; gap: 8px; animation: in .2s ease-out;
 }
-.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
-.card dt { color: var(--muted); }
-.card dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
-.card.empty { border-left-color: var(--muted); color: var(--muted); }
-.status { text-align: center; color: var(--muted); font-size: .875rem; min-height: 1.5em; }
-.warning {
-  background: var(--warn-bg); color: var(--warn); font-weight: 600;
-  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+.card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.card-title { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.badge {
+  font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+  background: var(--accent-soft); color: var(--text);
 }
-footer { text-align: center; color: var(--muted); font-size: .875rem; padding-bottom: 24px; }
-@keyframes in { from { opacity: 0; transform: translateY(4px); } }
+.label { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: var(--chip); border-radius: 8px; padding: 5px 10px;
+  font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.card.empty { color: var(--muted); }
+.status { margin: 0; text-align: center; color: var(--muted); font-size: .85rem; }
+.status:empty { display: none; }
+
+.warning { margin: 0; color: var(--warn); font-size: .85rem; display: flex; gap: 8px; align-items: flex-start; }
+.warning svg { flex: none; margin-top: 2px; }
+footer { max-width: 640px; margin: 0 auto; padding: 8px 16px 20px; color: var(--muted); font-size: .8rem; text-align: center; }
+
+@keyframes in { from { opacity: 0; transform: translateY(3px); } }
 @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
 </style>
 </head>
 <body>
 <main>
-  <h1>Търсене на верига за резачка</h1>
+  <header class="top">
+    <div class="logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/>
+        <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Каква верига?</h1>
+      <p>Търсене на верига за резачка</p>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Начин на търсене">
+    <button type="button" role="tab" id="tabModel" aria-controls="panelModel" aria-selected="true">По модел</button>
+    <button type="button" role="tab" id="tabCode" aria-controls="panelCode" aria-selected="false">По код</button>
+  </div>
+
   <p class="status" id="status" aria-live="polite">Зареждане на данните…</p>
 
-  <section class="panel">
-    <h2>Търсене по код</h2>
-    <label for="codeInput">Код (6 цифри)</label>
-    <input id="codeInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
-           autocomplete="off" placeholder="напр. 488461">
-    <div class="result" id="codeResult" aria-live="polite"></div>
-  </section>
-
-  <section class="panel">
-    <h2>Търсене по тип резачка</h2>
-    <label for="typeSelect">Вид</label>
-    <select id="typeSelect" disabled><option value="">Изберете вид</option></select>
-    <label for="brandSelect">Марка</label>
-    <select id="brandSelect" disabled><option value="">Изберете марка</option></select>
-    <label for="modelSelect">Модел</label>
-    <select id="modelSelect" disabled><option value="">Изберете модел</option></select>
+  <section class="panel" id="panelModel" role="tabpanel" aria-labelledby="tabModel">
+    <div class="fields">
+      <select id="typeSelect" aria-label="Вид" disabled><option value="">Вид</option></select>
+      <select id="brandSelect" aria-label="Марка" disabled><option value="">Марка</option></select>
+      <select id="modelSelect" aria-label="Модел" disabled><option value="">Модел</option></select>
+    </div>
     <div class="result" id="stepResult" aria-live="polite"></div>
   </section>
 
-  <p class="warning">Внимание! Ако е сменяна шината на триона, е възможно веригата да не отговаря на първоначалните спецификации.</p>
+  <section class="panel" id="panelCode" role="tabpanel" aria-labelledby="tabCode" hidden>
+    <input id="codeInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+           autocomplete="off" aria-label="Код" placeholder="Въведете 6-цифрен код">
+    <p class="hint">Например 488461</p>
+    <div class="result" id="codeResult" aria-live="polite"></div>
+  </section>
+
+  <p class="warning">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <span>Ако шината на триона е сменяна, веригата може да не отговаря на първоначалните спецификации.</span>
+  </p>
 </main>
 
-<footer>Вашите идеи и сигнали изпращайте на kakvaveriga[at]gmail[dot]com</footer>
+<footer>Идеи и сигнали: kakvaveriga[at]gmail[dot]com</footer>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ10nkDvscxOamJps57hzc-EkAjz3-7vsifyiTNsXRVvTyrqTYfEorg8f2EkkEIon9IzmD_9rf4Hi1t/pub?output=csv";
@@ -108,7 +171,18 @@ let data = [];
 let byCode = new Map();
 const collator = new Intl.Collator("bg", { numeric: true, sensitivity: "base" });
 
-// Proper CSV parser: handles quoted commas, "" escapes and \r\n. Linear time.
+// Tabs: show one search at a time
+const tabs = document.querySelectorAll('[role="tab"]');
+tabs.forEach(tab => tab.addEventListener("click", () => {
+  tabs.forEach(t => {
+    const on = t === tab;
+    t.setAttribute("aria-selected", on);
+    $(t.getAttribute("aria-controls")).hidden = !on;
+  });
+  if (tab.id === "tabCode") codeInput.focus();
+}));
+
+// CSV parser: handles quoted commas, "" escapes and \r\n
 function parseCSV(t) {
   const rows = []; let row = [], f = "", q = false;
   for (let i = 0; i < t.length; i++) {
@@ -134,7 +208,7 @@ function load(text) {
     }));
   byCode = new Map(data.map(d => [d.code, d]));
   if (!typeSelect.value) {
-    fillSelect(typeSelect, "Изберете вид", data.map(d => d.type));
+    fillSelect(typeSelect, "Вид", data.map(d => d.type));
     typeSelect.disabled = false;
   }
   if (codeInput.value) lookupCode();
@@ -146,30 +220,29 @@ function fillSelect(select, placeholder, values) {
   select.replaceChildren(new Option(placeholder, ""), ...unique.map(v => new Option(v, v)));
 }
 
-// Build result cards with textContent, never innerHTML, so sheet data can't inject HTML.
-function card(pairs) {
-  const div = document.createElement("div");
-  div.className = "card";
-  const dl = document.createElement("dl");
-  for (const [k, v] of pairs) {
-    const dt = document.createElement("dt"), dd = document.createElement("dd");
-    dt.textContent = k; dd.textContent = v;
-    dl.append(dt, dd);
-  }
-  div.append(dl);
-  return div;
+// DOM helpers: textContent only, so sheet data can't inject HTML
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
 }
-function emptyCard(msg) {
-  const div = document.createElement("div");
-  div.className = "card empty";
-  div.textContent = msg;
-  return div;
+// "⚙️ 0.325" / 🔗 x72 / 📏 1.5mm" -> one chip per part
+function chips(chain) {
+  const wrap = el("div", "chips");
+  chain.split(" / ").map(s => s.trim()).filter(Boolean).forEach(p => wrap.append(el("span", "chip", p)));
+  return wrap;
+}
+function chainCard(chain) {
+  const card = el("div", "card");
+  card.append(el("span", "label", "Верига"), chips(chain));
+  return card;
 }
 
 typeSelect.addEventListener("change", () => {
   const t = typeSelect.value;
-  fillSelect(brandSelect, "Изберете марка", data.filter(d => d.type === t).map(d => d.brand));
-  fillSelect(modelSelect, "Изберете модел", []);
+  fillSelect(brandSelect, "Марка", data.filter(d => d.type === t).map(d => d.brand));
+  fillSelect(modelSelect, "Модел", []);
   brandSelect.disabled = !t;
   modelSelect.disabled = true;
   stepResult.replaceChildren();
@@ -177,33 +250,41 @@ typeSelect.addEventListener("change", () => {
 
 brandSelect.addEventListener("change", () => {
   const t = typeSelect.value, b = brandSelect.value;
-  fillSelect(modelSelect, "Изберете модел", data.filter(d => d.type === t && d.brand === b).map(d => d.model));
+  fillSelect(modelSelect, "Модел", data.filter(d => d.type === t && d.brand === b).map(d => d.model));
   modelSelect.disabled = !b;
   stepResult.replaceChildren();
 });
 
 modelSelect.addEventListener("change", () => {
   const t = typeSelect.value, b = brandSelect.value, m = modelSelect.value;
-  const chains = [...new Set(data
+  const found = [...new Set(data
     .filter(d => d.type === t && d.brand === b && d.model === m)
     .map(d => d.chain))];
-  stepResult.replaceChildren(...chains.map(c => card([["Верига", c]])));
+  stepResult.replaceChildren(...found.map(chainCard));
 });
 
 function lookupCode() {
   const code = codeInput.value.trim();
   if (code.length !== 6) { codeResult.replaceChildren(); return; }
   const m = byCode.get(code);
-  codeResult.replaceChildren(m
-    ? card([["Марка", m.brand], ["Модел", m.model], ["Вид", m.type], ["Верига", m.chain]])
-    : emptyCard(data.length ? "Няма намерен резултат." : "Данните още се зареждат…"));
+  if (!m) {
+    codeResult.replaceChildren(el("div", "card empty", data.length ? "Няма намерен резултат за този код." : "Данните още се зареждат…"));
+    return;
+  }
+  const card = el("div", "card");
+  const head = el("div", "card-head");
+  head.append(el("span", "card-title", m.brand + " " + m.model), el("span", "badge", m.type));
+  card.append(head, el("span", "label", "Верига"), chips(m.chain));
+  codeResult.replaceChildren(card);
 }
 codeInput.addEventListener("input", lookupCode);
 
-// Stale-while-revalidate: show cached data instantly, refresh from the sheet in the background.
+// Show cached data instantly, then refresh from the sheet in the background
 let cached = null;
 try { cached = localStorage.getItem(CACHE_KEY); } catch {}
+const snapshot = $("snapshot");
 if (cached) load(cached);
+else if (snapshot) load(snapshot.textContent);
 
 fetch(CSV_URL)
   .then(res => { if (!res.ok) throw new Error(res.status); return res.text(); })
@@ -212,7 +293,7 @@ fetch(CSV_URL)
     try { localStorage.setItem(CACHE_KEY, text); } catch {}
   })
   .catch(() => {
-    if (!cached) status.textContent = "Грешка при зареждане на данните. Опитайте да презаредите страницата.";
+    if (!data.length) status.textContent = "Грешка при зареждане на данните. Опитайте да презаредите страницата.";
   });
 </script>
 </body>
