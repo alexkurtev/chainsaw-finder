@@ -2,211 +2,218 @@
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Търсене на верига за резачка</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Намерете подходящата верига за вашата резачка по код или по вид, марка и модел.">
+<meta name="theme-color" content="#1f6feb">
+<!-- Open the connection to Google early, before the script runs -->
+<link rel="preconnect" href="https://docs.google.com" crossorigin>
 <style>
+:root {
+  --bg: #f4f6f8; --surface: #fff; --text: #1d2329; --muted: #5b6670;
+  --border: #d5dbe1; --accent: #1f6feb; --accent-soft: rgba(31,111,235,.15);
+  --warn-bg: #fff4e5; --warn: #9a4b00; --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1418; --surface: #182027; --text: #e6edf3; --muted: #9aa7b2;
+    --border: #2c3640; --accent: #58a6ff; --accent-soft: rgba(88,166,255,.2);
+    --warn-bg: #2b2111; --warn: #f0b45a;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
 body {
-  font-family: Arial, sans-serif;
-  max-width: 700px;
-  margin: 20px auto;
-  padding: 0 15px;
-  background: #f9f9f9;
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
-h2, h3 {
-  text-align: center;
-  color: #333;
+main { max-width: 680px; margin: 0 auto; padding: 24px 16px; }
+h1 { font-size: 1.6rem; text-align: center; margin: 8px 0 24px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; }
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
 }
-select, input {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  transition: 0.2s;
+label { display: block; font-size: .875rem; color: var(--muted); margin: 12px 0 4px; }
+label:first-of-type { margin-top: 0; }
+input, select {
+  width: 100%; min-height: 48px; padding: 12px 14px; font: inherit; font-size: 1rem;
+  color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  transition: border-color .15s, box-shadow .15s;
 }
-select:focus, input:focus {
-  border-color: #007BFF;
-  box-shadow: 0 0 5px rgba(0,123,255,0.3);
-  outline: none;
+select {
+  appearance: none; padding-right: 40px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23889' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
 }
-.section {
-  margin-bottom: 30px;
-}
-.result {
-  margin-top: 15px;
-}
+select:disabled { opacity: .5; cursor: not-allowed; }
+input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.result:empty { display: none; }
+.result { margin-top: 14px; display: grid; gap: 10px; }
 .card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 12px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  background: var(--bg); border-left: 4px solid var(--accent);
+  border-radius: 8px; padding: 12px 16px; animation: in .2s ease-out;
 }
-.card strong {
-  color: #007BFF;
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.card dt { color: var(--muted); }
+.card dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.card.empty { border-left-color: var(--muted); color: var(--muted); }
+.status { text-align: center; color: var(--muted); font-size: .875rem; min-height: 1.5em; }
+.warning {
+  background: var(--warn-bg); color: var(--warn); font-weight: 600;
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
 }
-hr {
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 30px 0;
-}
-/* Mobile adjustments */
-@media screen and (max-width: 480px) {
-  body { margin: 10px; }
-  select, input { font-size: 18px; padding: 16px; }
-  .card { padding: 18px; font-size: 16px; }
-}
+footer { text-align: center; color: var(--muted); font-size: .875rem; padding-bottom: 24px; }
+@keyframes in { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .card { animation: none; } }
 </style>
 </head>
 <body>
+<main>
+  <h1>Търсене на верига за резачка</h1>
+  <p class="status" id="status" aria-live="polite">Зареждане на данните…</p>
 
-<h2>Търсене на верига за резачка</h2>
+  <section class="panel">
+    <h2>Търсене по код</h2>
+    <label for="codeInput">Код (6 цифри)</label>
+    <input id="codeInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+           autocomplete="off" placeholder="напр. 488461">
+    <div class="result" id="codeResult" aria-live="polite"></div>
+  </section>
 
-<div class="section">
-  <input id="codeInput" type="text" placeholder="Въведете код (напр. 123456)">
-  <div class="result" id="codeResult"></div>
-</div>
+  <section class="panel">
+    <h2>Търсене по тип резачка</h2>
+    <label for="typeSelect">Вид</label>
+    <select id="typeSelect" disabled><option value="">Изберете вид</option></select>
+    <label for="brandSelect">Марка</label>
+    <select id="brandSelect" disabled><option value="">Изберете марка</option></select>
+    <label for="modelSelect">Модел</label>
+    <select id="modelSelect" disabled><option value="">Изберете модел</option></select>
+    <div class="result" id="stepResult" aria-live="polite"></div>
+  </section>
 
-<hr>
+  <p class="warning">Внимание! Ако е сменяна шината на триона, е възможно веригата да не отговаря на първоначалните спецификации.</p>
+</main>
 
-<div class="section">
-  <h3>Търсене по тип резачка</h3>
-  <select id="typeSelect">
-    <option value="">Изберете вид</option>
-  </select>
-  <select id="brandSelect" disabled>
-    <option value="">Изберете марка</option>
-  </select>
-  <select id="modelSelect" disabled>
-    <option value="">Изберете модел</option>
-  </select>
-  <div class="result" id="stepResult"></div>
-</div>
+<footer>Вашите идеи и сигнали изпращайте на kakvaveriga[at]gmail[dot]com</footer>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ10nkDvscxOamJps57hzc-EkAjz3-7vsifyiTNsXRVvTyrqTYfEorg8f2EkkEIon9IzmD_9rf4Hi1t/pub?output=csv";
+const CACHE_KEY = "chains-csv";
+const $ = id => document.getElementById(id);
+const typeSelect = $("typeSelect"), brandSelect = $("brandSelect"), modelSelect = $("modelSelect");
+const stepResult = $("stepResult"), codeInput = $("codeInput"), codeResult = $("codeResult"), status = $("status");
 
 let data = [];
+let byCode = new Map();
+const collator = new Intl.Collator("bg", { numeric: true, sensitivity: "base" });
 
-fetch(CSV_URL)
-  .then(res => res.text())
-  .then(text => {
-    const rows = text.trim().split("\n").slice(1); // skip headers
-    data = rows.map(r => {
-      const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-      return {
-        code: c[0].trim(),
-        brand: c[1].trim(),
-        model: c[2].trim(),
-        chain: c[3].replace(/"/g, "").trim(),
-        type: c[4].trim()
-      };
-    });
-    populateTypes();
-  });
+// Proper CSV parser: handles quoted commas, "" escapes and \r\n. Linear time.
+function parseCSV(t) {
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (q) {
+      if (ch === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ",") { row.push(f); f = ""; }
+    else if (ch === "\n") { row.push(f); rows.push(row); row = []; f = ""; }
+    else if (ch !== "\r") f += ch;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
 
-const typeSelect = document.getElementById("typeSelect");
-const brandSelect = document.getElementById("brandSelect");
-const modelSelect = document.getElementById("modelSelect");
-const stepResult = document.getElementById("stepResult");
-const codeInput = document.getElementById("codeInput");
-const codeResult = document.getElementById("codeResult");
+function load(text) {
+  data = parseCSV(text.trim()).slice(1)
+    .filter(c => c.length >= 5 && c[0].trim())
+    .map(c => ({
+      code: c[0].trim(), brand: c[1].trim(), model: c[2].trim(),
+      chain: c[3].trim(), type: c[4].trim()
+    }));
+  byCode = new Map(data.map(d => [d.code, d]));
+  if (!typeSelect.value) {
+    fillSelect(typeSelect, "Изберете вид", data.map(d => d.type));
+    typeSelect.disabled = false;
+  }
+  if (codeInput.value) lookupCode();
+  status.textContent = "";
+}
 
-function populateTypes() {
-  const types = [...new Set(data.map(d => d.type))];
-  types.forEach(t => {
-    const o = document.createElement("option");
-    o.value = t;
-    o.textContent = t;
-    typeSelect.appendChild(o);
-  });
+function fillSelect(select, placeholder, values) {
+  const unique = [...new Set(values)].filter(Boolean).sort(collator.compare);
+  select.replaceChildren(new Option(placeholder, ""), ...unique.map(v => new Option(v, v)));
+}
+
+// Build result cards with textContent, never innerHTML, so sheet data can't inject HTML.
+function card(pairs) {
+  const div = document.createElement("div");
+  div.className = "card";
+  const dl = document.createElement("dl");
+  for (const [k, v] of pairs) {
+    const dt = document.createElement("dt"), dd = document.createElement("dd");
+    dt.textContent = k; dd.textContent = v;
+    dl.append(dt, dd);
+  }
+  div.append(dl);
+  return div;
+}
+function emptyCard(msg) {
+  const div = document.createElement("div");
+  div.className = "card empty";
+  div.textContent = msg;
+  return div;
 }
 
 typeSelect.addEventListener("change", () => {
-  brandSelect.innerHTML = '<option value="">Изберете марка</option>';
-  modelSelect.innerHTML = '<option value="">Изберете модел</option>';
-  brandSelect.disabled = false;
+  const t = typeSelect.value;
+  fillSelect(brandSelect, "Изберете марка", data.filter(d => d.type === t).map(d => d.brand));
+  fillSelect(modelSelect, "Изберете модел", []);
+  brandSelect.disabled = !t;
   modelSelect.disabled = true;
-  stepResult.innerHTML = "";
-
-  const brands = [...new Set(data.filter(d => d.type === typeSelect.value).map(d => d.brand))];
-  brands.forEach(b => {
-    const o = document.createElement("option");
-    o.value = b;
-    o.textContent = b;
-    brandSelect.appendChild(o);
-  });
+  stepResult.replaceChildren();
 });
 
 brandSelect.addEventListener("change", () => {
-  modelSelect.innerHTML = '<option value="">Изберете модел</option>';
-  modelSelect.disabled = false;
-  stepResult.innerHTML = "";
-
-  const models = [...new Set(data.filter(d => d.type === typeSelect.value && d.brand === brandSelect.value).map(d => d.model))];
-  models.forEach(m => {
-    const o = document.createElement("option");
-    o.value = m;
-    o.textContent = m;
-    modelSelect.appendChild(o);
-  });
+  const t = typeSelect.value, b = brandSelect.value;
+  fillSelect(modelSelect, "Изберете модел", data.filter(d => d.type === t && d.brand === b).map(d => d.model));
+  modelSelect.disabled = !b;
+  stepResult.replaceChildren();
 });
 
 modelSelect.addEventListener("change", () => {
-  const matches = data.filter(d =>
-    d.type === typeSelect.value &&
-    d.brand === brandSelect.value &&
-    d.model === modelSelect.value
-  );
-  stepResult.innerHTML = matches.map(m => `
-    <div class="card">
-
-      <strong>Верига:</strong> ${m.chain}
-    </div>
-  `).join("");
+  const t = typeSelect.value, b = brandSelect.value, m = modelSelect.value;
+  const chains = [...new Set(data
+    .filter(d => d.type === t && d.brand === b && d.model === m)
+    .map(d => d.chain))];
+  stepResult.replaceChildren(...chains.map(c => card([["Верига", c]])));
 });
 
-codeInput.addEventListener("input", () => {
+function lookupCode() {
   const code = codeInput.value.trim();
-  if (code.length !== 6) { codeResult.innerHTML = ""; return; }
-
-  const match = data.find(d => d.code === code);
-  if (!match) {
-    codeResult.innerHTML = '<div class="card">Няма намерен резултат.</div>';
-    return;
-  }
-
-  codeResult.innerHTML = `
-    <div class="card">
-      <strong>Марка:</strong> ${match.brand}<br>
-      <strong>Модел:</strong> ${match.model}<br>
-      <strong>Вид:</strong> ${match.type}<br>
-      <strong>Верига:</strong> ${match.chain}
-    </div>
-  `;
-});
-
-function addOptions(select, values) {
-  [...new Set(values)].forEach(v => {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    select.appendChild(o);
-  });
+  if (code.length !== 6) { codeResult.replaceChildren(); return; }
+  const m = byCode.get(code);
+  codeResult.replaceChildren(m
+    ? card([["Марка", m.brand], ["Модел", m.model], ["Вид", m.type], ["Верига", m.chain]])
+    : emptyCard(data.length ? "Няма намерен резултат." : "Данните още се зареждат…"));
 }
+codeInput.addEventListener("input", lookupCode);
+
+// Stale-while-revalidate: show cached data instantly, refresh from the sheet in the background.
+let cached = null;
+try { cached = localStorage.getItem(CACHE_KEY); } catch {}
+if (cached) load(cached);
+
+fetch(CSV_URL)
+  .then(res => { if (!res.ok) throw new Error(res.status); return res.text(); })
+  .then(text => {
+    if (text !== cached) load(text);
+    try { localStorage.setItem(CACHE_KEY, text); } catch {}
+  })
+  .catch(() => {
+    if (!cached) status.textContent = "Грешка при зареждане на данните. Опитайте да презаредите страницата.";
+  });
 </script>
-<footer style="text-align:center; padding:15px; background:#f3f3f3; color:#333; border-top:1px solid #ccc; margin-top:30px;">
-<span style="color: red; font-weight: bold;">Внимание! Ако е сменяна шината на триона е възможно веригата да не отговаря на първоначалните спецификации.</span>
-  <div style="text-align: center;">
-  <span style="color: green; font-weight: bold;"> вашите идеи и сигнали изпращайте на kakvaveriga[at]gmail[dot]com </span>
-</div>
-</div>
- 
-</footer>
 </body>
 </html>
-
-
-
