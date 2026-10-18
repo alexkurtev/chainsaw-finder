@@ -108,6 +108,17 @@ input::placeholder { letter-spacing: normal; color: var(--muted); }
 
 .warning { margin: 0; color: var(--warn); font-size: .85rem; display: flex; gap: 8px; align-items: flex-start; }
 .warning svg { flex: none; margin-top: 2px; }
+.related {
+  display: block; text-align: center; text-decoration: none; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; box-shadow: 0 1px 2px var(--shadow);
+  transition: border-color .15s, box-shadow .15s;
+}
+.related strong { display: block; font-weight: 700; }
+.related span { display: block; margin-top: 2px; color: var(--muted); font-size: .8rem; }
+.related em { display: inline-block; margin-top: 6px; font-style: normal; font-weight: 600; color: var(--accent); }
+.related:hover { border-color: var(--accent); }
+.related:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 footer { max-width: 640px; margin: 0 auto; padding: 8px 16px 20px; color: var(--muted); font-size: .8rem; text-align: center; }
 
 @keyframes in { from { opacity: 0; transform: translateY(3px); } }
@@ -156,6 +167,12 @@ footer { max-width: 640px; margin: 0 auto; padding: 8px 16px 20px; color: var(--
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
     <span>Ако шината на триона е сменяна, веригата може да не отговаря на първоначалните спецификации.</span>
   </p>
+
+  <a class="related" href="https://kolkomaslo.com/">
+    <strong>Колко масло за сместа?</strong>
+    <span>Изчислете двутактовата смес за вашия трион</span>
+    <em>Към калкулатора &rarr;</em>
+  </a>
 </main>
 
 <footer>Идеи и сигнали: kakvaveriga[at]gmail[dot]com</footer>
